@@ -444,6 +444,7 @@ type Pdf interface {
 	SetMargins(left, top, right float64)
 	SetPageBoxRec(t string, pb PageBox)
 	SetPageBox(t string, x, y, wd, ht float64)
+	SetPageRotation(angle int)
 	SetPage(pageNum int)
 	SetProtection(actionFlag byte, userPassStr, ownerPassStr string)
 	SetRightMargin(margin float64)
@@ -520,6 +521,7 @@ type Fpdf struct {
 	defPageSize      SizeType                   // default page size
 	defPageBoxes     map[string]PageBox         // default page size
 	curPageSize      SizeType                   // current page size
+	pageRotations    map[int]int                // page angle (multiple of +-90 degrees)
 	pageSizes        map[int]SizeType           // used for pages with non default sizes or orientations
 	pageBoxes        map[int]map[string]PageBox // used to define the crop, trim, bleed and art boxes
 	unitStr          string                     // unit of measure for all rendered objects except fonts
