@@ -77,6 +77,7 @@ func fpdfNew(orientationStr, unitStr, sizeStr, fontDirStr string, size SizeType)
 	f.n = 2
 	f.pages = make([]*bytes.Buffer, 0, 8)
 	f.pages = append(f.pages, bytes.NewBufferString("")) // pages[0] is unused (1-based)
+	f.pageRotations = make(map[int]int)
 	f.pageSizes = make(map[int]SizeType)
 	f.pageBoxes = make(map[int]map[string]PageBox)
 	f.defPageBoxes = make(map[string]PageBox)
@@ -393,6 +394,16 @@ func (f *Fpdf) SetPageBoxRec(t string, pb PageBox) {
 // artbox box types are case insensitive.
 func (f *Fpdf) SetPageBox(t string, x, y, wd, ht float64) {
 	f.SetPageBoxRec(t, PageBox{SizeType{Wd: wd, Ht: ht}, PointType{X: x, Y: y}})
+}
+
+// SetPageRotation sets the rotation of the current page
+func (f *Fpdf) SetPageRotation(angle int) {
+	if angle%90 != 0 {
+		f.err = fmt.Errorf("angle %d is not a multiple of 90", angle)
+		return
+	}
+
+	f.pageRotations[f.page] = angle
 }
 
 // SetPage sets the current page to that of a valid page in the PDF document.
@@ -3904,6 +3915,9 @@ func (f *Fpdf) putpages() {
 		}
 		for t, pb := range f.pageBoxes[n] {
 			f.outf("/%s [%.2f %.2f %.2f %.2f]", t, pb.X, pb.Y, pb.Wd, pb.Ht)
+		}
+		if angle, ok := f.pageRotations[n]; ok {
+			f.outf("/Rotate %d", angle)
 		}
 		f.out("/Resources 2 0 R")
 		// Links
